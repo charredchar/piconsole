@@ -1,4 +1,4 @@
-import wiringpi2 as wiringpi
+import wiringpi as wiringpi
 import subprocess
 from . import settings
 from time import sleep
@@ -31,7 +31,7 @@ def gpio_setup(pc):
 def gpio_status(pc):
     power_status = wiringpi.digitalRead(settings.PCS[pc]['gpio']['power'])
     mains_power = wiringpi.digitalRead(settings.PCS[pc]['gpio']['mains_power'])
-    power_led = wiringpi.digitalRead(settings.PCS[pc]['gpio']['power_led'])
+    power_led = 1 - wiringpi.digitalRead(settings.PCS[pc]['gpio']['power_led'])
     if settings.PCS[pc]['mains_normally_closed']:
         mains_power = mains_power^1
     return bool(power_status), bool(mains_power), bool(power_led)
@@ -53,7 +53,9 @@ def power_click(pc, secs):
 def mains_power_toggle(pc, status):
     try:
         lock.acquire(timeout=0.5)
-        wiringpi.digitalWrite(settings.PCS[pc]['gpio']['mains_power'], status)
+        wiringpi.digitalWrite(settings.PCS[pc]['gpio']['mains_power'], 1)
+        sleep(secs)
+        wiringpi.digitalWrite(settings.PCS[pc]['gpio']['mains_power'], 0)
     except LockTimeout:
         raise StandardError('Already operating on this pin. Try again later.')
     finally:
